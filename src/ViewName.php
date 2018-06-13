@@ -1,6 +1,6 @@
 <?php
 
-namespace Illuminate\View;
+namespace Blade;
 
 class ViewName
 {

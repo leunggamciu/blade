@@ -1,6 +1,6 @@
 <?php
 
-namespace Illuminate\View\Compilers;
+namespace Blade\Compilers;
 
 use InvalidArgumentException;
 use Illuminate\Filesystem\Filesystem;

@@ -1,9 +1,9 @@
 <?php
 
-namespace Illuminate\Tests\View;
+namespace Blade\Tests;
 
 use Mockery as m;
-use Illuminate\View\View;
+use Blade\View;
 use PHPUnit\Framework\TestCase;
 
 class ViewTest extends TestCase
@@ -68,8 +68,8 @@ class ViewTest extends TestCase
 
     public function testRenderSectionsReturnsEnvironmentSections()
     {
-        $view = m::mock('Illuminate\View\View[render]', [
-            m::mock('Illuminate\View\Factory'),
+        $view = m::mock('Blade\View[render]', [
+            m::mock('Blade\Factory'),
             m::mock(\Illuminate\Contracts\View\Engine::class),
             'view',
             'path',
@@ -101,7 +101,7 @@ class ViewTest extends TestCase
         $view->getFactory()->shouldReceive('make')->once()->with('foo', ['data']);
         $result = $view->nest('key', 'foo', ['data']);
 
-        $this->assertInstanceOf('Illuminate\View\View', $result);
+        $this->assertInstanceOf('Blade\View', $result);
     }
 
     public function testViewAcceptsArrayableImplementations()
@@ -165,7 +165,7 @@ class ViewTest extends TestCase
 
     /**
      * @expectedException \BadMethodCallException
-     * @expectedExceptionMessage Method Illuminate\View\View::badMethodCall does not exist.
+     * @expectedExceptionMessage Method Blade\View::badMethodCall does not exist.
      */
     public function testViewBadMethod()
     {
@@ -223,7 +223,7 @@ class ViewTest extends TestCase
     protected function getView($data = [])
     {
         return new View(
-            m::mock('Illuminate\View\Factory'),
+            m::mock('Blade\Factory'),
             m::mock(\Illuminate\Contracts\View\Engine::class),
             'view',
             'path',

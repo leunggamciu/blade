@@ -1,10 +1,10 @@
 <?php
 
-namespace Illuminate\Tests\View;
+namespace Blade\Tests;
 
 use Mockery as m;
 use ReflectionFunction;
-use Illuminate\View\Factory;
+use Blade\Factory;
 use PHPUnit\Framework\TestCase;
 
 class ViewFactoryTest extends TestCase
@@ -83,7 +83,7 @@ class ViewFactoryTest extends TestCase
 
     public function testRenderEachCreatesViewForEachItemInArray()
     {
-        $factory = m::mock('Illuminate\View\Factory[make]', $this->getFactoryArgs());
+        $factory = m::mock('Blade\Factory[make]', $this->getFactoryArgs());
         $factory->shouldReceive('make')->once()->with('foo', ['key' => 'bar', 'value' => 'baz'])->andReturn($mockView1 = m::mock('stdClass'));
         $factory->shouldReceive('make')->once()->with('foo', ['key' => 'breeze', 'value' => 'boom'])->andReturn($mockView2 = m::mock('stdClass'));
         $mockView1->shouldReceive('render')->once()->andReturn('dayle');
@@ -96,7 +96,7 @@ class ViewFactoryTest extends TestCase
 
     public function testEmptyViewsCanBeReturnedFromRenderEach()
     {
-        $factory = m::mock('Illuminate\View\Factory[make]', $this->getFactoryArgs());
+        $factory = m::mock('Blade\Factory[make]', $this->getFactoryArgs());
         $factory->shouldReceive('make')->once()->with('foo')->andReturn($mockView = m::mock('stdClass'));
         $mockView->shouldReceive('render')->once()->andReturn('empty');
 
@@ -215,7 +215,7 @@ class ViewFactoryTest extends TestCase
     public function testCallComposerCallsProperEvent()
     {
         $factory = $this->getFactory();
-        $view = m::mock(\Illuminate\View\View::class);
+        $view = m::mock(\Blade\View::class);
         $view->shouldReceive('name')->once()->andReturn('name');
         $factory->getDispatcher()->shouldReceive('dispatch')->once()->with('composing: name', [$view]);
 
@@ -254,7 +254,7 @@ class ViewFactoryTest extends TestCase
     public function testYieldDefaultViewIsNotEscapedTwice()
     {
         $factory = $this->getFactory();
-        $view = m::mock('Illuminate\View\View');
+        $view = m::mock('Blade\View');
         $view->shouldReceive('__toString')->once()->andReturn('<p>hi</p>&lt;p&gt;already escaped&lt;/p&gt;');
         $this->assertEquals('<p>hi</p>&lt;p&gt;already escaped&lt;/p&gt;', $factory->yieldContent('foo', $view));
     }
@@ -285,7 +285,7 @@ class ViewFactoryTest extends TestCase
     public function testBasicSectionDefaultViewIsNotEscapedTwice()
     {
         $factory = $this->getFactory();
-        $view = m::mock('Illuminate\View\View');
+        $view = m::mock('Blade\View');
         $view->shouldReceive('__toString')->once()->andReturn('<p>hi</p>&lt;p&gt;already escaped&lt;/p&gt;');
         $factory->startSection('foo', $view);
         $this->assertEquals('<p>hi</p>&lt;p&gt;already escaped&lt;/p&gt;', $factory->yieldContent('foo'));
@@ -293,7 +293,7 @@ class ViewFactoryTest extends TestCase
 
     public function testSectionExtending()
     {
-        $placeholder = \Illuminate\View\Factory::parentPlaceholder('foo');
+        $placeholder = \Blade\Factory::parentPlaceholder('foo');
         $factory = $this->getFactory();
         $factory->startSection('foo');
         echo 'hi '.$placeholder;
@@ -306,7 +306,7 @@ class ViewFactoryTest extends TestCase
 
     public function testSectionMultipleExtending()
     {
-        $placeholder = \Illuminate\View\Factory::parentPlaceholder('foo');
+        $placeholder = \Blade\Factory::parentPlaceholder('foo');
         $factory = $this->getFactory();
         $factory->startSection('foo');
         echo 'hello '.$placeholder.' nice to see you '.$placeholder;
@@ -324,7 +324,7 @@ class ViewFactoryTest extends TestCase
     {
         $factory = $this->getFactory();
         $factory->getFinder()->shouldReceive('find')->andReturn(__DIR__.'/fixtures/component.php');
-        $factory->getEngineResolver()->shouldReceive('resolve')->andReturn(new \Illuminate\View\Engines\PhpEngine);
+        $factory->getEngineResolver()->shouldReceive('resolve')->andReturn(new \Blade\Engines\PhpEngine);
         $factory->getDispatcher()->shouldReceive('dispatch');
         $factory->startComponent('component', ['name' => 'Taylor']);
         $factory->slot('title');
@@ -477,7 +477,7 @@ class ViewFactoryTest extends TestCase
      */
     public function testExceptionsInSectionsAreThrown()
     {
-        $engine = new \Illuminate\View\Engines\CompilerEngine(m::mock(\Illuminate\View\Compilers\CompilerInterface::class));
+        $engine = new \Blade\Engines\CompilerEngine(m::mock(\Blade\Compilers\CompilerInterface::class));
         $engine->getCompiler()->shouldReceive('getCompiledPath')->andReturnUsing(function ($path) {
             return $path;
         });
@@ -643,8 +643,8 @@ class ViewFactoryTest extends TestCase
     protected function getFactory()
     {
         return new Factory(
-            m::mock('Illuminate\View\Engines\EngineResolver'),
-            m::mock('Illuminate\View\ViewFinderInterface'),
+            m::mock('Blade\Engines\EngineResolver'),
+            m::mock('Blade\ViewFinderInterface'),
             m::mock('Illuminate\Contracts\Events\Dispatcher')
         );
     }
@@ -652,8 +652,8 @@ class ViewFactoryTest extends TestCase
     protected function getFactoryArgs()
     {
         return [
-            m::mock('Illuminate\View\Engines\EngineResolver'),
-            m::mock('Illuminate\View\ViewFinderInterface'),
+            m::mock('Blade\Engines\EngineResolver'),
+            m::mock('Blade\ViewFinderInterface'),
             m::mock('Illuminate\Contracts\Events\Dispatcher'),
         ];
     }

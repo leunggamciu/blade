@@ -1,6 +1,6 @@
 <?php
 
-namespace Illuminate\View\Engines;
+namespace Blade\Engines;
 
 use Exception;
 use Throwable;

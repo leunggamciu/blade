@@ -1,10 +1,10 @@
 <?php
 
-namespace Illuminate\Tests\View;
+namespace Blade\Tests;
 
 use Mockery as m;
 use PHPUnit\Framework\TestCase;
-use Illuminate\View\Engines\CompilerEngine;
+use Blade\Engines\CompilerEngine;
 
 class ViewCompilerEngineTest extends TestCase
 {
@@ -39,6 +39,6 @@ class ViewCompilerEngineTest extends TestCase
 
     protected function getEngine()
     {
-        return new CompilerEngine(m::mock('Illuminate\View\Compilers\CompilerInterface'));
+        return new CompilerEngine(m::mock('Blade\Compilers\CompilerInterface'));
     }
 }

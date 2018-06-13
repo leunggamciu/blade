@@ -1,10 +1,10 @@
 <?php
 
-namespace Illuminate\View\Engines;
+namespace Blade\Engines;
 
 use Exception;
 use ErrorException;
-use Illuminate\View\Compilers\CompilerInterface;
+use Blade\Compilers\CompilerInterface;
 
 class CompilerEngine extends PhpEngine
 {

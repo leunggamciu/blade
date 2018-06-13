@@ -1,6 +1,6 @@
 <?php
 
-namespace Illuminate\Tests\View\Blade;
+namespace Blade\Tests\Blade;
 
 class BladePushTest extends AbstractBladeTestCase
 {

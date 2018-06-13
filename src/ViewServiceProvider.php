@@ -1,13 +1,13 @@
 <?php
 
-namespace Illuminate\View;
+namespace Blade;
 
-use Illuminate\View\Engines\PhpEngine;
+use Blade\Engines\PhpEngine;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\View\Engines\FileEngine;
-use Illuminate\View\Engines\CompilerEngine;
-use Illuminate\View\Engines\EngineResolver;
-use Illuminate\View\Compilers\BladeCompiler;
+use Blade\Engines\FileEngine;
+use Blade\Engines\CompilerEngine;
+use Blade\Engines\EngineResolver;
+use Blade\Compilers\BladeCompiler;
 
 class ViewServiceProvider extends ServiceProvider
 {

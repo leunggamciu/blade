@@ -1,6 +1,6 @@
 <?php
 
-namespace Illuminate\Tests\View;
+namespace Blade\Tests;
 
 use Mockery as m;
 use PHPUnit\Framework\TestCase;
@@ -145,6 +145,6 @@ class ViewFileViewFinderTest extends TestCase
 
     protected function getFinder()
     {
-        return new \Illuminate\View\FileViewFinder(m::mock('Illuminate\Filesystem\Filesystem'), [__DIR__]);
+        return new \Blade\FileViewFinder(m::mock('Illuminate\Filesystem\Filesystem'), [__DIR__]);
     }
 }

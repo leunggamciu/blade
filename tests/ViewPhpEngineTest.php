@@ -1,10 +1,10 @@
 <?php
 
-namespace Illuminate\Tests\View;
+namespace Blade\Tests;
 
 use Mockery as m;
 use PHPUnit\Framework\TestCase;
-use Illuminate\View\Engines\PhpEngine;
+use Blade\Engines\PhpEngine;
 
 class ViewPhpEngineTest extends TestCase
 {

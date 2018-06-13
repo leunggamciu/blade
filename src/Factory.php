@@ -1,13 +1,13 @@
 <?php
 
-namespace Illuminate\View;
+namespace Blade;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\View\Engines\EngineResolver;
+use Blade\Engines\EngineResolver;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\View\Factory as FactoryContract;
 

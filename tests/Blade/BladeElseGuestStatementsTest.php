@@ -1,10 +1,10 @@
 <?php
 
-namespace Illuminate\Tests\View\Blade;
+namespace Blade\Tests\Blade;
 
 use Mockery as m;
 use PHPUnit\Framework\TestCase;
-use Illuminate\View\Compilers\BladeCompiler;
+use Blade\Compilers\BladeCompiler;
 
 class BladeElseGuestStatementsTest extends TestCase
 {
