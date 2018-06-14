@@ -4,10 +4,9 @@ namespace Blade\Engines;
 
 use Exception;
 use Throwable;
-use Illuminate\Contracts\View\Engine;
-use Symfony\Component\Debug\Exception\FatalThrowableError;
+use ErrorException;
 
-class PhpEngine implements Engine
+class PhpEngine implements EngineInterface
 {
     /**
      * Get the evaluated contents of the view.
@@ -44,7 +43,10 @@ class PhpEngine implements Engine
         } catch (Exception $e) {
             $this->handleViewException($e, $obLevel);
         } catch (Throwable $e) {
-            $this->handleViewException(new FatalThrowableError($e), $obLevel);
+            $this->handleViewException(
+                new ErrorException($e->getMessage(), $e->getCode(), E_ERROR, $e->getFile(), $e->getLine()),
+                $obLevel
+            );
         }
 
         return ltrim(ob_get_clean());

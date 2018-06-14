@@ -2,25 +2,18 @@
 
 namespace Blade\Compilers;
 
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
-
 class BladeCompiler extends Compiler implements CompilerInterface
 {
-    use Concerns\CompilesAuthorizations,
-        Concerns\CompilesComments,
+    use Concerns\CompilesComments,
         Concerns\CompilesComponents,
         Concerns\CompilesConditionals,
         Concerns\CompilesEchos,
-        Concerns\CompilesHelpers,
         Concerns\CompilesIncludes,
-        Concerns\CompilesInjections,
         Concerns\CompilesJson,
         Concerns\CompilesLayouts,
         Concerns\CompilesLoops,
         Concerns\CompilesRawPhp,
-        Concerns\CompilesStacks,
-        Concerns\CompilesTranslations;
+        Concerns\CompilesStacks;
 
     /**
      * All of the registered extensions.
@@ -321,12 +314,12 @@ class BladeCompiler extends Compiler implements CompilerInterface
      */
     protected function compileStatement($match)
     {
-        if (Str::contains($match[1], '@')) {
+        if (strpos($match[1], '@') !== false) {
             $match[0] = isset($match[3]) ? $match[1].$match[3] : $match[1];
         } elseif (isset($this->customDirectives[$match[1]])) {
-            $match[0] = $this->callCustomDirective($match[1], Arr::get($match, 3));
+            $match[0] = $this->callCustomDirective($match[1], $match[3]);
         } elseif (method_exists($this, $method = 'compile'.ucfirst($match[1]))) {
-            $match[0] = $this->$method(Arr::get($match, 3));
+            $match[0] = $this->$method($match[3]);
         }
 
         return isset($match[3]) ? $match[0] : $match[0].$match[2];
@@ -341,8 +334,8 @@ class BladeCompiler extends Compiler implements CompilerInterface
      */
     protected function callCustomDirective($name, $value)
     {
-        if (Str::startsWith($value, '(') && Str::endsWith($value, ')')) {
-            $value = Str::substr($value, 1, -1);
+        if ($value[0] === '(' && $value[strlen($value) - 1] === ')') {
+            $value = substr($value, 1, -1);
         }
 
         return call_user_func($this->customDirectives[$name], trim($value));
@@ -356,7 +349,7 @@ class BladeCompiler extends Compiler implements CompilerInterface
      */
     public function stripParentheses($expression)
     {
-        if (Str::startsWith($expression, '(')) {
+        if ($expression[0] === '(') {
             $expression = substr($expression, 1, -1);
         }
 
@@ -397,14 +390,14 @@ class BladeCompiler extends Compiler implements CompilerInterface
 
         $this->directive($name, function ($expression) use ($name) {
             return $expression
-                    ? "<?php if (\Illuminate\Support\Facades\Blade::check('{$name}', {$expression})): ?>"
-                    : "<?php if (\Illuminate\Support\Facades\Blade::check('{$name}')): ?>";
+                    ? "<?php if (\$__env->getEngineResolver()->resolve('blade')->check('{$name}', {$expression})): ?>"
+                    : "<?php if (\$__env->getEngineResolver()->resolve('blade')->check('{$name}')): ?>";
         });
 
         $this->directive('else'.$name, function ($expression) use ($name) {
             return $expression
-                ? "<?php elseif (\Illuminate\Support\Facades\Blade::check('{$name}', {$expression})): ?>"
-                : "<?php elseif (\Illuminate\Support\Facades\Blade::check('{$name}')): ?>";
+                ? "<?php elseif (\$__env->getEngineResolver()->resolve('blade')->check('{$name}', {$expression})): ?>"
+                : "<?php elseif (\$__env->getEngineResolver()->resolve('blade')->check('{$name}')): ?>";
         });
 
         $this->directive('end'.$name, function () {

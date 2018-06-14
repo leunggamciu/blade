@@ -3,8 +3,7 @@
 namespace Blade\Concerns;
 
 use Closure;
-use Illuminate\Support\Str;
-use Illuminate\Contracts\View\View as ViewContract;
+use Blade\ViewInterface;
 
 trait ManagesEvents
 {
@@ -117,12 +116,9 @@ trait ManagesEvents
     {
         list($class, $method) = $this->parseClassEvent($class, $prefix);
 
-        // Once we have the class and method name, we can build the Closure to resolve
-        // the instance out of the IoC container and call the method on it with the
-        // given arguments that are passed to the Closure as the composer's data.
         return function () use ($class, $method) {
             return call_user_func_array(
-                [$this->container->make($class), $method], func_get_args()
+                [new $class, $method], func_get_args()
             );
         };
     }
@@ -136,7 +132,7 @@ trait ManagesEvents
      */
     protected function parseClassEvent($class, $prefix)
     {
-        return Str::parseCallback($class, $this->classEventMethodForPrefix($prefix));
+        return strpos($class, '@') !== false ? explode('@', $class, 2) : [$class, $this->classEventMethodForPrefix($prefix)];
     }
 
     /**
@@ -147,7 +143,7 @@ trait ManagesEvents
      */
     protected function classEventMethodForPrefix($prefix)
     {
-        return Str::contains($prefix, 'composing') ? 'compose' : 'create';
+        return strpos($prefix, 'composing') !== false ? 'compose' : 'create';
     }
 
     /**
@@ -159,7 +155,7 @@ trait ManagesEvents
      */
     protected function addEventListener($name, $callback)
     {
-        if (Str::contains($name, '*')) {
+        if (strpos($name, '*')) {
             $callback = function ($name, array $data) use ($callback) {
                 return $callback($data[0]);
             };
@@ -171,10 +167,10 @@ trait ManagesEvents
     /**
      * Call the composer for a given view.
      *
-     * @param  \Illuminate\Contracts\View\View  $view
+     * @param  \Blade\ViewInterface  $view
      * @return void
      */
-    public function callComposer(ViewContract $view)
+    public function callComposer(ViewInterface $view)
     {
         $this->events->dispatch('composing: '.$view->name(), [$view]);
     }
@@ -182,10 +178,10 @@ trait ManagesEvents
     /**
      * Call the creator for a given view.
      *
-     * @param  \Illuminate\Contracts\View\View  $view
+     * @param  \Blade\ViewInterface  $view
      * @return void
      */
-    public function callCreator(ViewContract $view)
+    public function callCreator(ViewInterface $view)
     {
         $this->events->dispatch('creating: '.$view->name(), [$view]);
     }

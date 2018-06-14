@@ -6,32 +6,21 @@ use Exception;
 use Throwable;
 use ArrayAccess;
 use BadMethodCallException;
-use Illuminate\Support\Str;
-use Illuminate\Support\MessageBag;
-use Illuminate\Contracts\View\Engine;
-use Illuminate\Support\Traits\Macroable;
-use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Contracts\Support\Renderable;
-use Illuminate\Contracts\Support\MessageProvider;
-use Illuminate\Contracts\View\View as ViewContract;
+use Blade\Engines\EngineInterface;
 
-class View implements ArrayAccess, ViewContract
+class View implements ArrayAccess, ViewInterface
 {
-    use Macroable {
-        __call as macroCall;
-    }
-
     /**
      * The view factory instance.
      *
-     * @var \Illuminate\View\Factory
+     * @var \Blade\Factory
      */
     protected $factory;
 
     /**
      * The engine implementation.
      *
-     * @var \Illuminate\Contracts\View\Engine
+     * @var \Blade\Engines\EngineInterface
      */
     protected $engine;
 
@@ -59,21 +48,21 @@ class View implements ArrayAccess, ViewContract
     /**
      * Create a new view instance.
      *
-     * @param  \Illuminate\View\Factory  $factory
-     * @param  \Illuminate\Contracts\View\Engine  $engine
+     * @param  \Blade\Factory  $factory
+     * @param  \Blade\Engines\EngineInterface  $engine
      * @param  string  $view
      * @param  string  $path
      * @param  mixed  $data
      * @return void
      */
-    public function __construct(Factory $factory, Engine $engine, $view, $path, $data = [])
+    public function __construct(Factory $factory, EngineInterface $engine, $view, $path, $data = [])
     {
         $this->view = $view;
         $this->path = $path;
         $this->engine = $engine;
         $this->factory = $factory;
 
-        $this->data = $data instanceof Arrayable ? $data->toArray() : (array) $data;
+        $this->data = (array) $data;
     }
 
     /**
@@ -149,15 +138,7 @@ class View implements ArrayAccess, ViewContract
      */
     protected function gatherData()
     {
-        $data = array_merge($this->factory->getShared(), $this->data);
-
-        foreach ($data as $key => $value) {
-            if ($value instanceof Renderable) {
-                $data[$key] = $value->render();
-            }
-        }
-
-        return $data;
+        return array_merge($this->factory->getShared(), $this->data);
     }
 
     /**
@@ -201,31 +182,6 @@ class View implements ArrayAccess, ViewContract
     public function nest($key, $view, array $data = [])
     {
         return $this->with($key, $this->factory->make($view, $data));
-    }
-
-    /**
-     * Add validation errors to the view.
-     *
-     * @param  \Illuminate\Contracts\Support\MessageProvider|array  $provider
-     * @return $this
-     */
-    public function withErrors($provider)
-    {
-        $this->with('errors', $this->formatErrors($provider));
-
-        return $this;
-    }
-
-    /**
-     * Format the given message provider into a MessageBag.
-     *
-     * @param  \Illuminate\Contracts\Support\MessageProvider|array  $provider
-     * @return \Illuminate\Support\MessageBag
-     */
-    protected function formatErrors($provider)
-    {
-        return $provider instanceof MessageProvider
-                        ? $provider->getMessageBag() : new MessageBag((array) $provider);
     }
 
     /**
@@ -282,7 +238,7 @@ class View implements ArrayAccess, ViewContract
     /**
      * Get the view factory instance.
      *
-     * @return \Illuminate\View\Factory
+     * @return \Blade\Factory
      */
     public function getFactory()
     {
@@ -292,7 +248,7 @@ class View implements ArrayAccess, ViewContract
     /**
      * Get the view's rendering engine.
      *
-     * @return \Illuminate\Contracts\View\Engine
+     * @return \Blade\Engines\EngineInterface
      */
     public function getEngine()
     {
@@ -387,30 +343,6 @@ class View implements ArrayAccess, ViewContract
     public function __unset($key)
     {
         unset($this->data[$key]);
-    }
-
-    /**
-     * Dynamically bind parameters to the view.
-     *
-     * @param  string  $method
-     * @param  array   $parameters
-     * @return \Illuminate\View\View
-     *
-     * @throws \BadMethodCallException
-     */
-    public function __call($method, $parameters)
-    {
-        if (static::hasMacro($method)) {
-            return $this->macroCall($method, $parameters);
-        }
-
-        if (! Str::startsWith($method, 'with')) {
-            throw new BadMethodCallException(sprintf(
-                'Method %s::%s does not exist.', static::class, $method
-            ));
-        }
-
-        return $this->with(Str::camel(substr($method, 4)), $parameters[0]);
     }
 
     /**

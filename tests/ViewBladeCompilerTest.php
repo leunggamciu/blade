@@ -94,7 +94,7 @@ class ViewBladeCompilerTest extends TestCase
 
     protected function getFiles()
     {
-        return m::mock('Illuminate\Filesystem\Filesystem');
+        return m::mock('Blade\Filesystem\Filesystem');
     }
 
     public function testGetTagsProvider()

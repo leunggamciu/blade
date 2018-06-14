@@ -25,7 +25,7 @@ class CompilerEngine extends PhpEngine
     /**
      * Create a new Blade view engine instance.
      *
-     * @param  \Illuminate\View\Compilers\CompilerInterface  $compiler
+     * @param  \Blade\Compilers\CompilerInterface  $compiler
      * @return void
      */
     public function __construct(CompilerInterface $compiler)
@@ -93,7 +93,7 @@ class CompilerEngine extends PhpEngine
     /**
      * Get the compiler implementation.
      *
-     * @return \Illuminate\View\Compilers\CompilerInterface
+     * @return \Blade\Compilers\CompilerInterface
      */
     public function getCompiler()
     {

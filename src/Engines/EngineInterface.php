@@ -2,7 +2,7 @@
 
 namespace Blade\Engines;
 
-class FileEngine implements EngineInterface
+interface EngineInterface
 {
     /**
      * Get the evaluated contents of the view.
@@ -11,8 +11,5 @@ class FileEngine implements EngineInterface
      * @param  array   $data
      * @return string
      */
-    public function get($path, array $data = [])
-    {
-        return file_get_contents($path);
-    }
+    public function get($path, array $data = []);
 }

@@ -2,51 +2,38 @@
 
 namespace Blade;
 
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
 use InvalidArgumentException;
-use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Contracts\Support\Arrayable;
+use Blade\Events\DispatcherInterface;
 use Blade\Engines\EngineResolver;
-use Illuminate\Contracts\Container\Container;
-use Illuminate\Contracts\View\Factory as FactoryContract;
 
-class Factory implements FactoryContract
+class Factory implements FactoryInterface
 {
     use Concerns\ManagesComponents,
         Concerns\ManagesEvents,
         Concerns\ManagesLayouts,
         Concerns\ManagesLoops,
-        Concerns\ManagesStacks,
-        Concerns\ManagesTranslations;
+        Concerns\ManagesStacks;
 
     /**
      * The engine implementation.
      *
-     * @var \Illuminate\View\Engines\EngineResolver
+     * @var \Blade\Engines\EngineResolver
      */
     protected $engines;
 
     /**
      * The view finder implementation.
      *
-     * @var \Illuminate\View\ViewFinderInterface
+     * @var \Blade\ViewFinderInterface
      */
     protected $finder;
 
     /**
      * The event dispatcher instance.
      *
-     * @var \Illuminate\Contracts\Events\Dispatcher
+     * @var \Blade\Events\DispatcherInterface
      */
     protected $events;
-
-    /**
-     * The IoC container instance.
-     *
-     * @var \Illuminate\Contracts\Container\Container
-     */
-    protected $container;
 
     /**
      * Data that should be available to all templates.
@@ -83,12 +70,12 @@ class Factory implements FactoryContract
     /**
      * Create a new view factory instance.
      *
-     * @param  \Illuminate\View\Engines\EngineResolver  $engines
-     * @param  \Illuminate\View\ViewFinderInterface  $finder
-     * @param  \Illuminate\Contracts\Events\Dispatcher  $events
+     * @param  \Blade\Engines\EngineResolver  $engines
+     * @param  \Blade\ViewFinderInterface  $finder
+     * @param  \Blade\Events\DispatcherInterface  $events
      * @return void
      */
-    public function __construct(EngineResolver $engines, ViewFinderInterface $finder, Dispatcher $events)
+    public function __construct(EngineResolver $engines, ViewFinderInterface $finder, DispatcherInterface $events)
     {
         $this->finder = $finder;
         $this->events = $events;
@@ -103,15 +90,13 @@ class Factory implements FactoryContract
      * @param  string  $path
      * @param  array   $data
      * @param  array   $mergeData
-     * @return \Illuminate\Contracts\View\View
+     * @return \Blade\ViewInterface
      */
     public function file($path, $data = [], $mergeData = [])
     {
-        $data = array_merge($mergeData, $this->parseData($data));
+        $data = array_merge($mergeData, $data);
 
-        return tap($this->viewInstance($path, $path, $data), function ($view) {
-            $this->callCreator($view);
-        });
+        return $this->createView($path, $path, $data);
     }
 
     /**
@@ -120,7 +105,7 @@ class Factory implements FactoryContract
      * @param  string  $view
      * @param  array   $data
      * @param  array   $mergeData
-     * @return \Illuminate\Contracts\View\View
+     * @return \Blade\ViewInterface
      */
     public function make($view, $data = [], $mergeData = [])
     {
@@ -131,12 +116,11 @@ class Factory implements FactoryContract
         // Next, we will create the view instance and call the view creator for the view
         // which can set any data, etc. Then we will return the view instance back to
         // the caller for rendering or performing other view manipulations on this.
-        $data = array_merge($mergeData, $this->parseData($data));
+        $data = array_merge($mergeData, $data);
 
-        return tap($this->viewInstance($view, $path, $data), function ($view) {
-            $this->callCreator($view);
-        });
+        return $this->createView($view, $path, $data);
     }
+
 
     /**
      * Get the first view that actually exists from the given list.
@@ -144,19 +128,23 @@ class Factory implements FactoryContract
      * @param  array  $views
      * @param  array   $data
      * @param  array   $mergeData
-     * @return \Illuminate\Contracts\View\View
+     * @return \Blade\ViewInterface
      */
     public function first(array $views, $data = [], $mergeData = [])
     {
-        $view = collect($views)->first(function ($view) {
-            return $this->exists($view);
-        });
+        $found = null;
+        foreach ($views as $view) {
+            if ($this->exists($view)) {
+                $found = $view;
+                break;
+            }
+        }
 
-        if (! $view) {
+        if (! $found) {
             throw new InvalidArgumentException('None of the views in the given array exist.');
         }
 
-        return $this->make($view, $data, $mergeData);
+        return $this->make($found, $data, $mergeData);
     }
 
     /**
@@ -174,7 +162,7 @@ class Factory implements FactoryContract
             return '';
         }
 
-        return $this->make($view, $this->parseData($data), $mergeData)->render();
+        return $this->make($view, $data, $mergeData)->render();
     }
 
     /**
@@ -205,12 +193,25 @@ class Factory implements FactoryContract
         // view. Alternatively, the "empty view" could be a raw string that begins
         // with "raw|" for convenience and to let this know that it is a string.
         else {
-            $result = Str::startsWith($empty, 'raw|')
-                        ? substr($empty, 4)
-                        : $this->make($empty)->render();
+            $result = strpos($empty, 'raw|') === 0 ?
+                        substr($empty, 4) : $this->make($empty)->render();
         }
 
         return $result;
+    }
+
+    /**
+     * Create a view instance and fire the creating event
+     * @param  string $name
+     * @param  string $path
+     * @param  array $data
+     * @return \Blade\ViewInterface
+     */
+    protected function createView($name, $path, $data)
+    {
+        $viewInstance = $this->viewInstance($name, $path, $data);
+        $this->callCreator($viewInstance);
+        return $viewInstance;
     }
 
     /**
@@ -221,18 +222,15 @@ class Factory implements FactoryContract
      */
     protected function normalizeName($name)
     {
-        return ViewName::normalize($name);
-    }
+        $delimiter = ViewFinderInterface::HINT_PATH_DELIMITER;
 
-    /**
-     * Parse the given data into a raw array.
-     *
-     * @param  mixed  $data
-     * @return array
-     */
-    protected function parseData($data)
-    {
-        return $data instanceof Arrayable ? $data->toArray() : $data;
+        if (strpos($name, $delimiter) === false) {
+            return str_replace('/', '.', $name);
+        }
+
+        list($namespace, $name) = explode($delimiter, $name);
+
+        return $namespace.$delimiter.str_replace('/', '.', $name);
     }
 
     /**
@@ -269,7 +267,7 @@ class Factory implements FactoryContract
      * Get the appropriate view engine for the given path.
      *
      * @param  string  $path
-     * @return \Illuminate\Contracts\View\Engine
+     * @return \Blade\Engines\EngineInterface
      *
      * @throws \InvalidArgumentException
      */
@@ -288,15 +286,18 @@ class Factory implements FactoryContract
      * Get the extension used by the view file.
      *
      * @param  string  $path
-     * @return string
+     * @return string|null
      */
     protected function getExtension($path)
     {
         $extensions = array_keys($this->extensions);
 
-        return Arr::first($extensions, function ($value) use ($path) {
-            return Str::endsWith($path, '.'.$value);
-        });
+        foreach ($extensions as $extension) {
+            if (substr($path, -strlen($ext = '.' . $extension)) == $ext) {
+                return $extension;
+            }
+        }
+        return null;
     }
 
     /**
@@ -459,7 +460,7 @@ class Factory implements FactoryContract
     /**
      * Get the engine resolver instance.
      *
-     * @return \Illuminate\View\Engines\EngineResolver
+     * @return \Blade\Engines\EngineResolver
      */
     public function getEngineResolver()
     {
@@ -469,7 +470,7 @@ class Factory implements FactoryContract
     /**
      * Get the view finder instance.
      *
-     * @return \Illuminate\View\ViewFinderInterface
+     * @return \Blade\ViewFinderInterface
      */
     public function getFinder()
     {
@@ -479,7 +480,7 @@ class Factory implements FactoryContract
     /**
      * Set the view finder instance.
      *
-     * @param  \Illuminate\View\ViewFinderInterface  $finder
+     * @param  \Blade\ViewFinderInterface  $finder
      * @return void
      */
     public function setFinder(ViewFinderInterface $finder)
@@ -500,7 +501,7 @@ class Factory implements FactoryContract
     /**
      * Get the event dispatcher instance.
      *
-     * @return \Illuminate\Contracts\Events\Dispatcher
+     * @return \Blade\Events\DispatcherInterface
      */
     public function getDispatcher()
     {
@@ -510,33 +511,12 @@ class Factory implements FactoryContract
     /**
      * Set the event dispatcher instance.
      *
-     * @param  \Illuminate\Contracts\Events\Dispatcher  $events
+     * @param  \Blade\Events\DispatcherInterface  $events
      * @return void
      */
-    public function setDispatcher(Dispatcher $events)
+    public function setDispatcher(DispatcherInterface $events)
     {
         $this->events = $events;
-    }
-
-    /**
-     * Get the IoC container instance.
-     *
-     * @return \Illuminate\Contracts\Container\Container
-     */
-    public function getContainer()
-    {
-        return $this->container;
-    }
-
-    /**
-     * Set the IoC container instance.
-     *
-     * @param  \Illuminate\Contracts\Container\Container  $container
-     * @return void
-     */
-    public function setContainer(Container $container)
-    {
-        $this->container = $container;
     }
 
     /**
@@ -548,7 +528,7 @@ class Factory implements FactoryContract
      */
     public function shared($key, $default = null)
     {
-        return Arr::get($this->shared, $key, $default);
+        return $this->shared[$key] ?? $default;
     }
 
     /**

@@ -20,9 +20,9 @@ class ViewFactoryTest extends TestCase
 
         $factory = $this->getFactory();
         $factory->getFinder()->shouldReceive('find')->once()->with('view')->andReturn('path.php');
-        $factory->getEngineResolver()->shouldReceive('resolve')->once()->with('php')->andReturn($engine = m::mock(\Illuminate\Contracts\View\Engine::class));
+        $factory->getEngineResolver()->shouldReceive('resolve')->once()->with('php')->andReturn($engine = m::mock(\Blade\Engines\EngineInterface::class));
         $factory->getFinder()->shouldReceive('addExtension')->once()->with('php');
-        $factory->setDispatcher(new \Illuminate\Events\Dispatcher);
+        $factory->setDispatcher(new \Blade\Events\Dispatcher);
         $factory->creator('view', function ($view) {
             $_SERVER['__test.view'] = $view;
         });
@@ -52,9 +52,9 @@ class ViewFactoryTest extends TestCase
         $factory = $this->getFactory();
         $factory->getFinder()->shouldReceive('find')->twice()->with('view')->andReturn('path.php');
         $factory->getFinder()->shouldReceive('find')->once()->with('bar')->andThrow('InvalidArgumentException');
-        $factory->getEngineResolver()->shouldReceive('resolve')->once()->with('php')->andReturn($engine = m::mock(\Illuminate\Contracts\View\Engine::class));
+        $factory->getEngineResolver()->shouldReceive('resolve')->once()->with('php')->andReturn($engine = m::mock(\Blade\Engines\EngineInterface::class));
         $factory->getFinder()->shouldReceive('addExtension')->once()->with('php');
-        $factory->setDispatcher(new \Illuminate\Events\Dispatcher);
+        $factory->setDispatcher(new \Blade\Events\Dispatcher);
         $factory->creator('view', function ($view) {
             $_SERVER['__test.view'] = $view;
         });
@@ -75,7 +75,7 @@ class ViewFactoryTest extends TestCase
         $factory = $this->getFactory();
         $factory->getFinder()->shouldReceive('find')->once()->with('view')->andThrow('InvalidArgumentException');
         $factory->getFinder()->shouldReceive('find')->once()->with('bar')->andThrow('InvalidArgumentException');
-        $factory->getEngineResolver()->shouldReceive('resolve')->with('php')->andReturn($engine = m::mock(\Illuminate\Contracts\View\Engine::class));
+        $factory->getEngineResolver()->shouldReceive('resolve')->with('php')->andReturn($engine = m::mock(\Blade\Engines\EngineInterface::class));
         $factory->getFinder()->shouldReceive('addExtension')->with('php');
         $factory->addExtension('php', 'php');
         $view = $factory->first(['bar', 'view'], ['foo' => 'bar'], ['baz' => 'boom']);
@@ -119,7 +119,7 @@ class ViewFactoryTest extends TestCase
         $factory->getFinder()->shouldReceive('addExtension')->once()->with('foo');
         $factory->getEngineResolver()->shouldReceive('register')->once()->with('bar', $resolver);
         $factory->getFinder()->shouldReceive('find')->once()->with('view')->andReturn('path.foo');
-        $factory->getEngineResolver()->shouldReceive('resolve')->once()->with('bar')->andReturn($engine = m::mock(\Illuminate\Contracts\View\Engine::class));
+        $factory->getEngineResolver()->shouldReceive('resolve')->once()->with('bar')->andReturn($engine = m::mock(\Blade\Engines\EngineInterface::class));
         $factory->getDispatcher()->shouldReceive('dispatch');
 
         $factory->addExtension('foo', 'bar', $resolver);
@@ -184,32 +184,6 @@ class ViewFactoryTest extends TestCase
         ];
         $this->assertEquals(['class' => 'foo', 'method' => 'compose'], $reflections[0]->getStaticVariables());
         $this->assertEquals(['class' => 'baz', 'method' => 'baz'], $reflections[1]->getStaticVariables());
-    }
-
-    public function testClassCallbacks()
-    {
-        $factory = $this->getFactory();
-        $factory->getDispatcher()->shouldReceive('listen')->once()->with('composing: foo', m::type('Closure'));
-        $factory->setContainer($container = m::mock('Illuminate\Container\Container'));
-        $container->shouldReceive('make')->once()->with('FooComposer')->andReturn($composer = m::mock('stdClass'));
-        $composer->shouldReceive('compose')->once()->with('view')->andReturn('composed');
-        $callback = $factory->composer('foo', 'FooComposer');
-        $callback = $callback[0];
-
-        $this->assertEquals('composed', $callback('view'));
-    }
-
-    public function testClassCallbacksWithMethods()
-    {
-        $factory = $this->getFactory();
-        $factory->getDispatcher()->shouldReceive('listen')->once()->with('composing: foo', m::type('Closure'));
-        $factory->setContainer($container = m::mock('Illuminate\Container\Container'));
-        $container->shouldReceive('make')->once()->with('FooComposer')->andReturn($composer = m::mock('stdClass'));
-        $composer->shouldReceive('doComposer')->once()->with('view')->andReturn('composed');
-        $callback = $factory->composer('foo', 'FooComposer@doComposer');
-        $callback = $callback[0];
-
-        $this->assertEquals('composed', $callback('view'));
     }
 
     public function testCallComposerCallsProperEvent()
@@ -336,20 +310,6 @@ class ViewFactoryTest extends TestCase
         $this->assertEquals('title<hr> component Taylor laravel.com', $contents);
     }
 
-    public function testTranslation()
-    {
-        $container = new \Illuminate\Container\Container;
-        $container->instance('translator', $translator = m::mock('stdClass'));
-        $translator->shouldReceive('getFromJson')->with('Foo', ['name' => 'taylor'])->andReturn('Bar');
-        $factory = $this->getFactory();
-        $factory->setContainer($container);
-        $factory->startTranslation(['name' => 'taylor']);
-        echo 'Foo';
-        $string = $factory->renderTranslation();
-
-        $this->assertEquals('Bar', $string);
-    }
-
     public function testSingleStackPush()
     {
         $factory = $this->getFactory();
@@ -445,7 +405,7 @@ class ViewFactoryTest extends TestCase
     {
         $factory = $this->getFactory();
         $factory->getFinder()->shouldReceive('find')->twice()->with('foo.bar')->andReturn('path.php');
-        $factory->getEngineResolver()->shouldReceive('resolve')->twice()->with('php')->andReturn(m::mock(\Illuminate\Contracts\View\Engine::class));
+        $factory->getEngineResolver()->shouldReceive('resolve')->twice()->with('php')->andReturn(m::mock(\Blade\Engines\EngineInterface::class));
         $factory->getDispatcher()->shouldReceive('dispatch');
         $factory->make('foo/bar');
         $factory->make('foo.bar');
@@ -455,7 +415,7 @@ class ViewFactoryTest extends TestCase
     {
         $factory = $this->getFactory();
         $factory->getFinder()->shouldReceive('find')->twice()->with('vendor/package::foo.bar')->andReturn('path.php');
-        $factory->getEngineResolver()->shouldReceive('resolve')->twice()->with('php')->andReturn(m::mock(\Illuminate\Contracts\View\Engine::class));
+        $factory->getEngineResolver()->shouldReceive('resolve')->twice()->with('php')->andReturn(m::mock(\Blade\Engines\EngineInterface::class));
         $factory->getDispatcher()->shouldReceive('dispatch');
         $factory->make('vendor/package::foo/bar');
         $factory->make('vendor/package::foo.bar');
@@ -645,7 +605,7 @@ class ViewFactoryTest extends TestCase
         return new Factory(
             m::mock('Blade\Engines\EngineResolver'),
             m::mock('Blade\ViewFinderInterface'),
-            m::mock('Illuminate\Contracts\Events\Dispatcher')
+            m::mock('Blade\Events\DispatcherInterface')
         );
     }
 
@@ -654,7 +614,7 @@ class ViewFactoryTest extends TestCase
         return [
             m::mock('Blade\Engines\EngineResolver'),
             m::mock('Blade\ViewFinderInterface'),
-            m::mock('Illuminate\Contracts\Events\Dispatcher'),
+            m::mock('Blade\Events\DispatcherInterface'),
         ];
     }
 }

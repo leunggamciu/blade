@@ -3,14 +3,12 @@
 namespace Blade;
 
 use InvalidArgumentException;
-use Illuminate\Filesystem\Filesystem;
+use Blade\Filesystem\Filesystem;
 
-class FileViewFinder implements ViewFinderInterface
+class ViewFinder implements ViewFinderInterface
 {
     /**
-     * The filesystem instance.
-     *
-     * @var \Illuminate\Filesystem\Filesystem
+     * @var \Blade\Filesystem\Filesystem
      */
     protected $files;
 
@@ -45,7 +43,7 @@ class FileViewFinder implements ViewFinderInterface
     /**
      * Create a new file view loader instance.
      *
-     * @param  \Illuminate\Filesystem\Filesystem  $files
+     * @param  \Blade\Filesystem\Filesystem  $files
      * @param  array  $paths
      * @param  array  $extensions
      * @return void
@@ -247,6 +245,14 @@ class FileViewFinder implements ViewFinderInterface
     }
 
     /**
+     * @return \Blade\Filesystem\Filesystem
+     */
+    public function getFilesystem()
+    {
+        return $this->files;
+    }
+
+    /**
      * Flush the cache of located views.
      *
      * @return void
@@ -254,16 +260,6 @@ class FileViewFinder implements ViewFinderInterface
     public function flush()
     {
         $this->views = [];
-    }
-
-    /**
-     * Get the filesystem instance.
-     *
-     * @return \Illuminate\Filesystem\Filesystem
-     */
-    public function getFilesystem()
-    {
-        return $this->files;
     }
 
     /**

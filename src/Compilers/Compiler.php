@@ -3,17 +3,10 @@
 namespace Blade\Compilers;
 
 use InvalidArgumentException;
-use Illuminate\Filesystem\Filesystem;
+use Blade\Filesystem\Filesystem;
 
 abstract class Compiler
 {
-    /**
-     * The Filesystem instance.
-     *
-     * @var \Illuminate\Filesystem\Filesystem
-     */
-    protected $files;
-
     /**
      * Get the cache path for the compiled views.
      *
@@ -24,7 +17,6 @@ abstract class Compiler
     /**
      * Create a new compiler instance.
      *
-     * @param  \Illuminate\Filesystem\Filesystem  $files
      * @param  string  $cachePath
      * @return void
      *

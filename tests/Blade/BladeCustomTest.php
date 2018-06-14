@@ -69,7 +69,7 @@ class BladeCustomTest extends AbstractBladeTestCase
 
         $string = '@custom($user)
 @endcustom';
-        $expected = '<?php if (\Illuminate\Support\Facades\Blade::check(\'custom\', $user)): ?>
+        $expected = '<?php if ($__env->getEngineResolver()->resolve(\'blade\')->check(\'custom\', $user)): ?>
 <?php endif; ?>';
         $this->assertEquals($expected, $this->compiler->compileString($string));
     }
@@ -84,8 +84,8 @@ class BladeCustomTest extends AbstractBladeTestCase
 @elsecustom($product)
 @else
 @endcustom';
-        $expected = '<?php if (\Illuminate\Support\Facades\Blade::check(\'custom\', $user)): ?>
-<?php elseif (\Illuminate\Support\Facades\Blade::check(\'custom\', $product)): ?>
+        $expected = '<?php if ($__env->getEngineResolver()->resolve(\'blade\')->check(\'custom\', $user)): ?>
+<?php elseif ($__env->getEngineResolver()->resolve(\'blade\')->check(\'custom\', $product)): ?>
 <?php else: ?>
 <?php endif; ?>';
         $this->assertEquals($expected, $this->compiler->compileString($string));

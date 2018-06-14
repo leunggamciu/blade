@@ -3,7 +3,7 @@
 namespace Blade\Concerns;
 
 use InvalidArgumentException;
-use Illuminate\Contracts\View\View;
+use Blade\ViewInterface;
 
 trait ManagesLayouts
 {
@@ -42,7 +42,7 @@ trait ManagesLayouts
                 $this->sectionStack[] = $section;
             }
         } else {
-            $this->extendSection($section, $content instanceof View ? $content : e($content));
+            $this->extendSection($section, $content instanceof ViewInterface ? $content : e($content));
         }
     }
 
@@ -144,7 +144,7 @@ trait ManagesLayouts
      */
     public function yieldContent($section, $default = '')
     {
-        $sectionContent = $default instanceof View ? $default : e($default);
+        $sectionContent = $default instanceof ViewInterface ? $default : e($default);
 
         if (isset($this->sections[$section])) {
             $sectionContent = $this->sections[$section];

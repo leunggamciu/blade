@@ -19,10 +19,6 @@ class ViewTest extends TestCase
         $view->with('foo', 'bar');
         $view->with(['baz' => 'boom']);
         $this->assertEquals(['foo' => 'bar', 'baz' => 'boom'], $view->getData());
-
-        $view = $this->getView();
-        $view->withFoo('bar')->withBaz('boom');
-        $this->assertEquals(['foo' => 'bar', 'baz' => 'boom'], $view->getData());
     }
 
     public function testRenderProperlyRendersView()
@@ -70,7 +66,7 @@ class ViewTest extends TestCase
     {
         $view = m::mock('Blade\View[render]', [
             m::mock('Blade\Factory'),
-            m::mock(\Illuminate\Contracts\View\Engine::class),
+            m::mock(\Blade\Engines\EngineInterface::class),
             'view',
             'path',
             [],
@@ -102,17 +98,6 @@ class ViewTest extends TestCase
         $result = $view->nest('key', 'foo', ['data']);
 
         $this->assertInstanceOf('Blade\View', $result);
-    }
-
-    public function testViewAcceptsArrayableImplementations()
-    {
-        $arrayable = m::mock('Illuminate\Contracts\Support\Arrayable');
-        $arrayable->shouldReceive('toArray')->once()->andReturn(['foo' => 'bar', 'baz' => ['qux', 'corge']]);
-
-        $view = $this->getView($arrayable);
-
-        $this->assertEquals('bar', $view->foo);
-        $this->assertEquals(['qux', 'corge'], $view->baz);
     }
 
     public function testViewGettersSetters()
@@ -163,31 +148,6 @@ class ViewTest extends TestCase
         $this->assertFalse($view->offsetExists('foo'));
     }
 
-    /**
-     * @expectedException \BadMethodCallException
-     * @expectedExceptionMessage Method Blade\View::badMethodCall does not exist.
-     */
-    public function testViewBadMethod()
-    {
-        $view = $this->getView();
-        $view->badMethodCall();
-    }
-
-    public function testViewGatherDataWithRenderable()
-    {
-        $view = $this->getView();
-        $view->getFactory()->shouldReceive('incrementRender')->once()->ordered();
-        $view->getFactory()->shouldReceive('callComposer')->once()->ordered()->with($view);
-        $view->getFactory()->shouldReceive('getShared')->once()->andReturn(['shared' => 'foo']);
-        $view->getEngine()->shouldReceive('get')->once()->andReturn('contents');
-        $view->getFactory()->shouldReceive('decrementRender')->once()->ordered();
-        $view->getFactory()->shouldReceive('flushStateIfDoneRendering')->once();
-
-        $view->renderable = m::mock('Illuminate\Contracts\Support\Renderable');
-        $view->renderable->shouldReceive('render')->once()->andReturn('text');
-        $this->assertEquals('contents', $view->render());
-    }
-
     public function testViewRenderSections()
     {
         $view = $this->getView();
@@ -204,27 +164,11 @@ class ViewTest extends TestCase
         $this->assertEquals($sections[1], 'bar');
     }
 
-    public function testWithErrors()
-    {
-        $view = $this->getView();
-        $errors = ['foo' => 'bar', 'qu' => 'ux'];
-        $this->assertSame($view, $view->withErrors($errors));
-        $this->assertInstanceOf('Illuminate\Support\MessageBag', $view->errors);
-        $foo = $view->errors->get('foo');
-        $this->assertEquals($foo[0], 'bar');
-        $qu = $view->errors->get('qu');
-        $this->assertEquals($qu[0], 'ux');
-        $data = ['foo' => 'baz'];
-        $this->assertSame($view, $view->withErrors(new \Illuminate\Support\MessageBag($data)));
-        $foo = $view->errors->get('foo');
-        $this->assertEquals($foo[0], 'baz');
-    }
-
     protected function getView($data = [])
     {
         return new View(
             m::mock('Blade\Factory'),
-            m::mock(\Illuminate\Contracts\View\Engine::class),
+            m::mock(\Blade\Engines\EngineInterface::class),
             'view',
             'path',
             $data

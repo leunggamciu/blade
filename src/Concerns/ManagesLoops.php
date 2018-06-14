@@ -3,7 +3,6 @@
 namespace Blade\Concerns;
 
 use Countable;
-use Illuminate\Support\Arr;
 
 trait ManagesLoops
 {
@@ -24,7 +23,7 @@ trait ManagesLoops
     {
         $length = is_array($data) || $data instanceof Countable ? count($data) : null;
 
-        $parent = Arr::last($this->loopsStack);
+        $parent = end($this->loopsStack);
 
         $this->loopsStack[] = [
             'iteration' => 0,
@@ -73,7 +72,7 @@ trait ManagesLoops
      */
     public function getLastLoop()
     {
-        if ($last = Arr::last($this->loopsStack)) {
+        if ($last = end($this->loopsStack)) {
             return (object) $last;
         }
     }

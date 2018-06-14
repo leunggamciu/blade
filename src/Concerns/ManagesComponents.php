@@ -2,8 +2,6 @@
 
 namespace Blade\Concerns;
 
-use Illuminate\Support\HtmlString;
-
 trait ManagesComponents
 {
     /**
@@ -74,7 +72,7 @@ trait ManagesComponents
     {
         return array_merge(
             $this->componentData[count($this->componentStack)],
-            ['slot' => new HtmlString(trim(ob_get_clean()))],
+            ['slot' => trim(ob_get_clean())],
             $this->slots[count($this->componentStack)]
         );
     }
@@ -113,7 +111,7 @@ trait ManagesComponents
         );
 
         $this->slots[$this->currentComponent()]
-                    [$currentSlot] = new HtmlString(trim(ob_get_clean()));
+                    [$currentSlot] = trim(ob_get_clean());
     }
 
     /**

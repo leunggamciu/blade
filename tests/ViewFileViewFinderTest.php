@@ -145,6 +145,6 @@ class ViewFileViewFinderTest extends TestCase
 
     protected function getFinder()
     {
-        return new \Blade\FileViewFinder(m::mock('Illuminate\Filesystem\Filesystem'), [__DIR__]);
+        return new \Blade\ViewFinder(m::mock('Blade\Filesystem\Filesystem'), [__DIR__]);
     }
 }
