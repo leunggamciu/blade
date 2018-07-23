@@ -1,4 +1,4 @@
-# Blade
+# Blade [![Build Status](https://travis-ci.org/leunggamciu/blade.svg?branch=master)](https://travis-ci.org/leunggamciu/blade)
 
 #### Introduction
 
