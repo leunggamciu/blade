@@ -317,9 +317,9 @@ class BladeCompiler extends Compiler implements CompilerInterface
         if (strpos($match[1], '@') !== false) {
             $match[0] = isset($match[3]) ? $match[1].$match[3] : $match[1];
         } elseif (isset($this->customDirectives[$match[1]])) {
-            $match[0] = $this->callCustomDirective($match[1], $match[3]);
+            $match[0] = $this->callCustomDirective($match[1], $match[3] ?? null);
         } elseif (method_exists($this, $method = 'compile'.ucfirst($match[1]))) {
-            $match[0] = $this->$method($match[3]);
+            $match[0] = $this->$method($match[3] ?? null);
         }
 
         return isset($match[3]) ? $match[0] : $match[0].$match[2];
@@ -349,7 +349,7 @@ class BladeCompiler extends Compiler implements CompilerInterface
      */
     public function stripParentheses($expression)
     {
-        if ($expression[0] === '(') {
+        if (($expression[0] ?? null) === '(') {
             $expression = substr($expression, 1, -1);
         }
 
@@ -426,7 +426,8 @@ class BladeCompiler extends Compiler implements CompilerInterface
      */
     public function component($path, $alias = null)
     {
-        $alias = $alias ?: array_last(explode('.', $path));
+        $parts = explode('.', $path);
+        $alias = $alias ?: end($parts);
 
         $this->directive($alias, function ($expression) use ($path) {
             return $expression
@@ -448,7 +449,8 @@ class BladeCompiler extends Compiler implements CompilerInterface
      */
     public function include($path, $alias = null)
     {
-        $alias = $alias ?: array_last(explode('.', $path));
+        $parts = explode('.', $path);
+        $alias = $alias ?: end($parts);
 
         $this->directive($alias, function ($expression) use ($path) {
             $expression = $this->stripParentheses($expression) ?: '[]';
